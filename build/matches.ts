@@ -62,7 +62,7 @@ export function findMatchesInMarkdown(
   return matches;
 }
 
-export function getFirstMatchInText(needle, haystack): Match {
+export function getFirstMatchInText(needle: string, haystack: string): Match {
   const index = haystack.indexOf(needle);
   const left = haystack.substring(0, index);
   const line = left.split("\n").length;
@@ -70,20 +70,28 @@ export function getFirstMatchInText(needle, haystack): Match {
   return { line, column };
 }
 
-export function replaceMatchingLinksInMarkdown(needle, haystack, replacement) {
+export function replaceMatchingLinksInMarkdown(
+  needle: string,
+  haystack: string,
+  replacement: string
+) {
   // Need to remove any characters that can affect a regex if we're going
   // use the string in a manually constructed regex.
   const escaped = needle.replace(ESCAPE_CHARS_RE, "\\$&");
   const rex = new RegExp(String.raw`\[([^\]]*)\]\((?:${escaped})\)`, "g");
-  return haystack.replace(rex, (_, p1) => {
+  haystack = haystack.replace(rex, (_, p1) => {
     return `[${p1}](${replacement})`;
+  });
+  // Same as findMatchesInMarkdown, we should also replace any HTML elements that contain links
+  return replaceMatchesInText(needle, haystack, replacement, {
+    inAttribute: "href",
   });
 }
 
 export function replaceMatchesInText(
-  needle,
-  haystack,
-  replacement,
+  needle: string,
+  haystack: string,
+  replacement: string,
   { inAttribute = null, removeEntireAttribute = false }
 ) {
   // Need to remove any characters that can affect a regex if we're going
